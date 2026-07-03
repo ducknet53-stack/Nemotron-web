@@ -1,311 +1,113 @@
-/* ----- RESET ----- */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: #0b0f1f;
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-.container {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 40px;
-    padding: 30px 24px 24px;
-    max-width: 720px;
-    width: 100%;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.7);
-}
-
-/* ----- HEADER ----- */
-.header {
+/* ----- DÜŞÜNÜYOR... INDICATOR ----- */
+.thinking-indicator {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    gap: 12px;
+    padding: 8px 16px;
+    margin: 4px 0;
+    background: rgba(79, 172, 254, 0.05);
+    border-radius: 20px;
+    border: 1px solid rgba(79, 172, 254, 0.08);
+    animation: fadeIn 0.3s ease;
 }
 
-.brand {
+.thinking-content {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
-.brand .icon {
-    font-size: 28px;
-    line-height: 1;
-}
-
-.brand h1 {
-    color: #fff;
-    font-size: 22px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
-
-.brand .badge {
-    color: rgba(255, 255, 255, 0.3);
-    font-size: 13px;
-    font-weight: 400;
-}
-
-/* ----- MOD BUTONLARI ----- */
-.mode-toggle {
-    display: flex;
-    gap: 6px;
-    background: rgba(255, 255, 255, 0.04);
-    padding: 4px;
-    border-radius: 60px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.mode-btn {
-    padding: 8px 18px;
-    border: none;
-    border-radius: 40px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.25s ease;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.4);
-}
-
-.mode-btn.active {
-    background: linear-gradient(145deg, #4facfe, #00c6fb);
-    color: #fff;
-    box-shadow: 0 4px 16px rgba(79, 172, 254, 0.25);
-}
-
-.mode-btn:hover:not(.active) {
-    color: rgba(255, 255, 255, 0.7);
-}
-
-/* ----- DURUM ÇUBUĞU ----- */
-.search-status {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 18px;
-    min-height: 70px;
-    margin: 6px 0 16px 0;
-    padding: 12px 20px;
-    border-radius: 60px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    transition: all 0.4s ease;
-}
-
-.search-status.idle {
-    opacity: 0.3;
-}
-
-.search-status.active {
-    opacity: 1;
-    border-color: rgba(79, 172, 254, 0.15);
-    box-shadow: 0 0 40px rgba(79, 172, 254, 0.03);
-}
-
-/* ----- ATOM SİMGESİ (Animasyonlu, dönmez) ----- */
-.globe {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #4facfe, #0072ff);
-    box-shadow: 0 0 40px rgba(79, 172, 254, 0.15), inset 0 -6px 20px rgba(0, 0, 0, 0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    transition: 0.3s;
-}
-
-.globe.paused {
-    opacity: 0.4;
-}
-
-.globe .globe-icon {
-    font-size: 28px;
-    color: #fff;
-    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
-    line-height: 1;
-}
-
-/* Atom simgesi animasyonu (parlama) */
-.globe.searching .globe-icon {
+.thinking-icon {
+    font-size: 18px;
     animation: atomPulse 1.2s ease-in-out infinite;
 }
 
-@keyframes atomPulse {
-    0% {
-        transform: scale(0.8);
-        opacity: 0.6;
-        text-shadow: 0 0 10px rgba(79, 172, 254, 0.3);
-    }
-    50% {
-        transform: scale(1.2);
-        opacity: 1;
-        text-shadow: 0 0 30px rgba(79, 172, 254, 0.8), 0 0 60px rgba(79, 172, 254, 0.4);
-    }
-    100% {
-        transform: scale(0.8);
-        opacity: 0.6;
-        text-shadow: 0 0 10px rgba(79, 172, 254, 0.3);
-    }
+.thinking-text {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.5);
 }
 
-/* ----- ARAŞTIRMA METNİ ----- */
-.search-text {
-    color: rgba(255, 255, 255, 0.7);
-    font-size: 16px;
-    font-weight: 500;
-    letter-spacing: 0.3px;
+.thinking-dots::after {
+    content: '';
+    animation: typingDot 1.5s steps(4) infinite;
 }
 
-/* ----- SOHBET ALANI ----- */
-.chat-box {
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 24px;
-    padding: 18px 16px;
-    max-height: 340px;
-    min-height: 180px;
-    overflow-y: auto;
-    margin-bottom: 18px;
-    border: 1px solid rgba(255, 255, 255, 0.04);
-    scroll-behavior: smooth;
+/* ----- REASONING KONTEYNERI ----- */
+.reasoning-container {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(79, 172, 254, 0.08);
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin: 6px 0 12px 0;
+    animation: fadeIn 0.4s ease;
 }
 
-.chat-box::-webkit-scrollbar {
-    width: 4px;
-}
-.chat-box::-webkit-scrollbar-track {
-    background: transparent;
-}
-.chat-box::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.12);
-    border-radius: 10px;
-}
-
-/* ----- MESAJLAR ----- */
-.message {
-    margin-bottom: 14px;
+.reasoning-header {
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-.message.user {
-    align-items: flex-end;
-}
-.message.ai {
-    align-items: flex-start;
+.reasoning-icon {
+    font-size: 16px;
+    color: rgba(79, 172, 254, 0.6);
 }
 
-.bubble {
-    max-width: 88%;
-    padding: 12px 18px;
-    border-radius: 22px;
-    font-size: 15px;
+.reasoning-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.reasoning-content {
+    font-size: 13px;
     line-height: 1.6;
-    word-break: break-word;
-    animation: fadeUp 0.3s ease;
+    color: rgba(255, 255, 255, 0.4);
+    font-style: italic;
+    white-space: pre-wrap;
 }
 
-.message.user .bubble {
-    background: linear-gradient(145deg, #4facfe, #00c6fb);
-    color: #fff;
-    border-bottom-right-radius: 6px;
-    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.15);
+.reasoning-content b,
+.reasoning-content strong {
+    color: rgba(79, 172, 254, 0.5);
+    font-weight: 600;
+    font-style: normal;
 }
 
-.message.ai .bubble {
-    background: rgba(255, 255, 255, 0.06);
-    color: #e8edf5;
-    border-bottom-left-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.04);
-}
-
-/* Bold yazı desteği */
+/* ----- BOLD YAZI (Sohbette) ----- */
 .bubble b,
 .bubble strong {
     color: #4facfe;
     font-weight: 700;
 }
 
-.message .label {
-    font-size: 11px;
-    color: rgba(255, 255, 255, 0.25);
-    margin: 0 12px 4px 12px;
+.bubble code {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9em;
+    color: #e8edf5;
 }
 
-@keyframes fadeUp {
-    0% { opacity: 0; transform: translateY(12px); }
-    100% { opacity: 1; transform: translateY(0); }
-}
-
-/* ----- DÜŞÜNME ADIMLARI (Kaliteli) ----- */
-.thinking-step {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 6px 12px;
-    margin: 4px 0;
-    background: rgba(79, 172, 254, 0.05);
-    border-radius: 12px;
-    border-left: 3px solid #4facfe;
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.6);
-    animation: fadeIn 0.4s ease;
-}
-
-.thinking-step .step-icon {
-    font-size: 16px;
-    flex-shrink: 0;
-}
-
-.thinking-step .step-text {
-    flex: 1;
-}
-
-@keyframes fadeIn {
-    0% { opacity: 0; transform: translateX(-10px); }
-    100% { opacity: 1; transform: translateX(0); }
-}
-
-/* ----- YAZIYOR... ANİMASYONU ----- */
-.typing-indicator {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    margin: 4px 0;
-    background: rgba(79, 172, 254, 0.03);
-    border-radius: 20px;
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.4);
-    animation: fadeIn 0.3s ease;
-}
-
-.typing-indicator .typing-text {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.typing-indicator .typing-dots::after {
-    content: '';
-    animation: typingDot 1.5s steps(4) infinite;
+/* Animasyonlar */
+@keyframes atomPulse {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.6;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(0.8);
+        opacity: 0.6;
+    }
 }
 
 @keyframes typingDot {
@@ -315,162 +117,7 @@ body {
     75% { content: '...'; }
 }
 
-/* ----- KAYNAK SİTELER ----- */
-.sources {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.source-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    background: rgba(255, 255, 255, 0.04);
-    border-radius: 20px;
-    font-size: 12px;
-    color: rgba(255, 255, 255, 0.5);
-    text-decoration: none;
-    transition: 0.2s;
-}
-
-.source-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
-}
-
-.source-item .favicon {
-    width: 16px;
-    height: 16px;
-    border-radius: 4px;
-    object-fit: cover;
-}
-
-/* ----- GİRİŞ ALANI ----- */
-.input-area {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.input-area input {
-    flex: 1;
-    padding: 14px 20px;
-    border-radius: 60px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(255, 255, 255, 0.04);
-    color: #fff;
-    font-size: 15px;
-    outline: none;
-    transition: 0.25s ease;
-    min-width: 160px;
-}
-
-.input-area input::placeholder {
-    color: rgba(255, 255, 255, 0.2);
-}
-
-.input-area input:focus {
-    border-color: #4facfe;
-    box-shadow: 0 0 20px rgba(79, 172, 254, 0.05);
-    background: rgba(255, 255, 255, 0.07);
-}
-
-.input-area .btn-group {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.input-area button {
-    padding: 14px 24px;
-    border: none;
-    border-radius: 60px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: 0.2s ease;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.btn-send {
-    background: linear-gradient(145deg, #4facfe, #00c6fb);
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(79, 172, 254, 0.2);
-}
-
-.btn-send:hover:not(:disabled) {
-    transform: scale(1.02);
-    box-shadow: 0 8px 30px rgba(79, 172, 254, 0.3);
-}
-
-.btn-web {
-    background: rgba(255, 255, 255, 0.06);
-    color: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.btn-web:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-}
-
-.btn-web.active {
-    background: rgba(79, 172, 254, 0.15);
-    border-color: #4facfe;
-    color: #4facfe;
-}
-
-button:disabled {
-    opacity: 0.3;
-    cursor: not-allowed;
-    transform: none !important;
-}
-
-/* ----- RESPONSIVE ----- */
-@media (max-width: 550px) {
-    .container {
-        padding: 20px 14px;
-    }
-    .header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .mode-toggle {
-        justify-content: center;
-    }
-    .search-status {
-        flex-direction: column;
-        gap: 10px;
-        padding: 16px;
-        border-radius: 30px;
-    }
-    .globe {
-        width: 44px;
-        height: 44px;
-    }
-    .globe .globe-icon {
-        font-size: 22px;
-    }
-    .input-area {
-        flex-direction: column;
-    }
-    .input-area input {
-        width: 100%;
-    }
-    .input-area .btn-group {
-        width: 100%;
-    }
-    .input-area button {
-        flex: 1;
-        justify-content: center;
-    }
+@keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
