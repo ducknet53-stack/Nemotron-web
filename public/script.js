@@ -66,7 +66,7 @@ userInput.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') sendBtn.click();
 });
 
-// ----- MESAJ GONDERME -----
+// ----- MESAJ GÖNDERME -----
 async function sendMessage(msg, useWebSearch) {
     if (isProcessing) return;
     isProcessing = true;
@@ -81,15 +81,26 @@ async function sendMessage(msg, useWebSearch) {
         await startWebAnimation(msg);
     }
 
-    // "Nemotron Yazıyor..." göster
-    showTypingIndicator();
+    // "Nemotron düşünüyor..." göster
+    showThinkingIndicator();
 
-    const aiResponse = await getAIResponse(msg, useWebSearch || currentMode === 'web');
+    const data = await getAIResponse(msg, useWebSearch || currentMode === 'web');
     
-    // "Yazıyor..." u kaldır
-    removeTypingIndicator();
-    
-    await typeMessage(aiResponse);
+    // Düşünme indicator'unu kaldır
+    removeThinkingIndicator();
+
+    // Reasoning'i göster (eğer varsa)
+    if (data.reasoning) {
+        addReasoning(data.reasoning);
+    }
+
+    // Final cevabı yaz
+    await typeMessage(data.response);
+
+    // Kaynakları göster
+    if (data.sources && data.sources.length > 0) {
+        addSources(data.sources);
+    }
 
     isProcessing = false;
     sendBtn.disabled = false;
@@ -104,47 +115,62 @@ async function sendMessage(msg, useWebSearch) {
     }
 }
 
-// ----- YAZIYOR... GÖSTER -----
-function showTypingIndicator() {
+// ----- DÜŞÜNÜYOR... GÖSTER -----
+function showThinkingIndicator() {
     const div = document.createElement('div');
-    div.id = 'typingIndicator';
-    div.className = 'typing-indicator';
+    div.id = 'thinkingIndicator';
+    div.className = 'thinking-indicator';
     div.innerHTML = `
-        <span class="typing-text">Nemotron yaziyor<span class="typing-dots"></span></span>
+        <div class="thinking-content">
+            <span class="thinking-icon">⚛</span>
+            <span class="thinking-text">Nemotron düşünüyor<span class="thinking-dots"></span></span>
+        </div>
     `;
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-function removeTypingIndicator() {
-    const el = document.getElementById('typingIndicator');
+function removeThinkingIndicator() {
+    const el = document.getElementById('thinkingIndicator');
     if (el) el.remove();
 }
 
-// ----- WEB ANIMASYONU (Kaliteli Düşünme Adımları) -----
+// ----- REASONING GÖSTER -----
+function addReasoning(reasoningText) {
+    const div = document.createElement('div');
+    div.className = 'reasoning-container';
+    div.innerHTML = `
+        <div class="reasoning-header">
+            <span class="reasoning-icon">⚛</span>
+            <span class="reasoning-title">Nemotron düşünüyordu...</span>
+        </div>
+        <div class="reasoning-content">${reasoningText}</div>
+    `;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// ----- WEB ANİMASYONU -----
 async function startWebAnimation(query) {
     return new Promise((resolve) => {
         searchStatus.classList.remove('idle');
         globe.classList.remove('paused');
         globe.classList.add('searching');
 
-        // Kaliteli reasoning adımları
         const steps = [
-            { icon: '⚛', text: `Kullanici "${query}" hakkinda bilgi istiyor. Bu konuyu detayli arastirmam gerekiyor.` },
-            { icon: '⚛', text: `Once en guncel kaynaklari tarayayim. Hava durumu icin dogru ve guvenilir bilgi bulmaliyim.` },
-            { icon: '⚛', text: `Meteoroloji verilerini ve yerel kaynaklari karsilastiriyorum...` },
-            { icon: '⚛', text: `Bilgileri dogruluyorum ve anlamli bir butun haline getiriyorum.` },
-            { icon: '⚛', text: `Cevabi hazirliyorum, kullaniciya en net sekilde aktaracagim.` }
+            { icon: '⚛', text: `Kullanici "${query}" hakkinda bilgi istiyor.` },
+            { icon: '⚛', text: 'En guncel kaynaklari taranıyor...' },
+            { icon: '⚛', text: 'Veriler dogrulanıyor ve analiz ediliyor...' },
+            { icon: '⚛', text: 'Cevap hazirlaniyor...' }
         ];
 
         let index = 0;
 
         function showStep() {
             if (index < steps.length) {
-                addThinkingStep(steps[index].icon, steps[index].text);
                 searchText.innerHTML = `<span>${steps[index].icon} ${steps[index].text}</span>`;
                 index++;
-                setTimeout(showStep, 1400);
+                setTimeout(showStep, 1200);
             } else {
                 searchText.innerHTML = '<span>Bilgiler toplandi. Cevap olusturuluyor...</span>';
                 setTimeout(() => resolve(), 500);
@@ -154,19 +180,7 @@ async function startWebAnimation(query) {
     });
 }
 
-// ----- DÜŞÜNME ADIMI EKLE -----
-function addThinkingStep(icon, text) {
-    const div = document.createElement('div');
-    div.className = 'thinking-step';
-    div.innerHTML = `
-        <span class="step-icon">${icon}</span>
-        <span class="step-text">${text}</span>
-    `;
-    chatBox.appendChild(div);
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// ----- MESAJ EKLE (Bold Desteği) -----
+// ----- MESAJ EKLE -----
 function addMessage(role, content) {
     const div = document.createElement('div');
     div.className = `message ${role}`;
@@ -176,18 +190,9 @@ function addMessage(role, content) {
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
     
-    // Bold işleme ( **metin** -> <b>metin</b> )
-    if (content.includes('**')) {
-        const parts = content.split(/\*\*(.*?)\*\*/g);
-        let html = '';
-        for (let i = 0; i < parts.length; i++) {
-            if (i % 2 === 1) {
-                html += `<b>${parts[i]}</b>`;
-            } else {
-                html += parts[i];
-            }
-        }
-        bubble.innerHTML = html;
+    // Markdown işleme
+    if (content.includes('**') || content.includes('*') || content.includes('`')) {
+        bubble.innerHTML = renderMarkdown(content);
     } else {
         bubble.textContent = content;
     }
@@ -196,6 +201,20 @@ function addMessage(role, content) {
     div.appendChild(bubble);
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// ----- MARKDOWN RENDER -----
+function renderMarkdown(text) {
+    let html = text;
+    // Bold
+    html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    // Italic
+    html = html.replace(/\*(.*?)\*/g, '<i>$1</i>');
+    // Code
+    html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+    // Newline to br
+    html = html.replace(/\n/g, '<br>');
+    return html;
 }
 
 // ----- KAYNAK EKLE -----
@@ -233,15 +252,45 @@ function typeMessage(text) {
         div.appendChild(bubble);
         chatBox.appendChild(div);
 
-        let index = 0;
-        const speed = 15;
+        // Markdown işleme
+        const html = renderMarkdown(text);
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        const textNodes = [];
+        
+        // HTML'yi parçalara ayır
+        const walker = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, null, false);
+        let node;
+        while (node = walker.nextNode()) {
+            textNodes.push(node);
+        }
+
+        let currentIndex = 0;
+        let currentText = '';
+        let isTagOpen = false;
+        let tagStack = [];
 
         function typeChar() {
-            if (index < text.length) {
-                bubble.textContent += text.charAt(index);
-                index++;
-                chatBox.scrollTop = chatBox.scrollHeight;
-                setTimeout(typeChar, speed);
+            if (currentIndex < html.length) {
+                // HTML etiketlerini kontrol et
+                if (html[currentIndex] === '<') {
+                    // Etiket başlangıcı
+                    let tag = '';
+                    while (currentIndex < html.length && html[currentIndex] !== '>') {
+                        tag += html[currentIndex];
+                        currentIndex++;
+                    }
+                    tag += '>';
+                    currentIndex++;
+                    bubble.innerHTML += tag;
+                    setTimeout(typeChar, 0);
+                } else {
+                    // Normal karakter
+                    bubble.textContent += html[currentIndex];
+                    currentIndex++;
+                    chatBox.scrollTop = chatBox.scrollHeight;
+                    setTimeout(typeChar, 15);
+                }
             } else {
                 resolve();
             }
@@ -264,15 +313,12 @@ async function getAIResponse(msg, useWeb) {
 
         const data = await response.json();
         if (data.success) {
-            if (data.sources) {
-                addSources(data.sources);
-            }
-            return data.response;
+            return data;
         } else {
-            return 'Uzgunum, bir hata olustu. Lutfen tekrar dener misin?';
+            return { response: 'Uzgunum, bir hata olustu. Lutfen tekrar dener misin?' };
         }
     } catch (error) {
         console.error('API hatasi:', error);
-        return 'Baglanti hatasi. Lutfen daha sonra tekrar dene.';
+        return { response: 'Baglanti hatasi. Lutfen daha sonra tekrar dene.' };
     }
 }
