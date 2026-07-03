@@ -7,8 +7,8 @@
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-
     <div class="container">
+        <!-- HEADER -->
         <div class="header">
             <div class="brand">
                 <span class="icon">🧠</span>
@@ -21,31 +21,33 @@
             </div>
         </div>
 
+        <!-- DURUM ÇUBUĞU -->
         <div class="search-status idle" id="searchStatus">
             <div class="globe paused" id="globe">
-                <span class="globe-icon">🌐</span>
+                <span class="globe-icon">🔍</span>
             </div>
             <div class="search-text" id="searchText">
-                <span>Hazir</span>
+                <span>Hazır</span>
             </div>
         </div>
 
+        <!-- SOHBET ALANI -->
         <div class="chat-box" id="chatBox">
             <div class="message ai">
                 <span class="label">🧠 Nemotron</span>
-                <div class="bubble">Merhaba! Ben Nemotron Ultra. Sana nasil yardimci olabilirim?</div>
+                <div class="bubble">Merhaba! Ben Nemotron Ultra. Sana nasıl yardımcı olabilirim?</div>
             </div>
         </div>
 
+        <!-- GİRİŞ ALANI -->
         <div class="input-area">
-            <input type="text" id="userInput" placeholder="Mesajini yaz..." />
+            <input type="text" id="userInput" placeholder="Mesajını yaz..." />
             <div class="btn-group">
                 <button class="btn-send" id="sendBtn">Gönder</button>
-                <button class="btn-web" id="webBtn">🌐 Web'de Ara</button>
+                <button class="btn-web" id="webBtn">🔍 Web'de Ara</button>
             </div>
         </div>
     </div>
-
     <script src="script.js"></script>
 </body>
 </html>
