@@ -7,22 +7,13 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
-
-// Frontend dosyalarını serve et
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Sadece Tavily API key (OpenRouter key yok!)
 const TAVILY_API_KEY = process.env.TAVILY_API_KEY;
-
-// Mevcut API adresi (DOĞRU!)
 const NEMOTRON_API = 'https://nemotron-ultra-api.onrender.com';
 
-// ----------------------
-// 1. Web Araması (Tavily)
-// ----------------------
 async function searchWeb(query) {
     try {
         const response = await axios.post(
@@ -31,7 +22,8 @@ async function searchWeb(query) {
                 query: query,
                 max_results: 5,
                 search_depth: 'basic',
-                include_answer: true
+                include_answer: true,
+                include_raw_content: false
             },
             {
                 headers: {
@@ -42,30 +34,19 @@ async function searchWeb(query) {
         );
         return response.data;
     } catch (error) {
-        console.error('Tavily hatasi:', error.message);
+        console.error('Tavily hatası:', error.message);
         return null;
     }
 }
 
-// ----------------------
-// 2. Ana Sohbet Endpoint'i
-// ----------------------
 app.post('/api/chat', async (req, res) => {
     try {
         const { messages, web_search } = req.body;
-
-        if (!messages || !Array.isArray(messages)) {
-            return res.status(400).json({
-                success: false,
-                error: 'Gecersiz istek. messages array gonderin.'
-            });
-        }
-
         const userMessage = messages[messages.length - 1].content;
         let webContext = '';
         let webAnswer = '';
+        let sources = [];
 
-        // Eger web aramasi aktifse Tavily ile ara
         if (web_search) {
             const searchResult = await searchWeb(userMessage);
             if (searchResult && searchResult.results) {
@@ -73,30 +54,30 @@ app.post('/api/chat', async (req, res) => {
                     .map(r => `- ${r.content}`)
                     .join('\n');
                 webAnswer = searchResult.answer || '';
+                sources = searchResult.results.map(r => ({
+                    title: r.title || r.url.replace(/^https?:\/\//, '').slice(0, 30),
+                    url: r.url
+                }));
             }
         }
 
-        // Web sonuçlarını mesaja ekle
         let finalMessages = messages;
         if (web_search && webContext) {
             const contextMessage = {
                 role: 'system',
-                content: `Web aramasi sonucunda su bilgileri elde ettim:\n${webContext}\n${webAnswer ? `Ozet cevap: ${webAnswer}` : ''}\n\nBu bilgilere dayanarak kullaniciya dogru ve guncel cevap ver.`
+                content: `Web araması sonucunda şu bilgileri elde ettim:\n${webContext}\n${webAnswer ? `Özet cevap: ${webAnswer}` : ''}\n\nBu bilgilere dayanarak kullanıcıya doğru ve güncel cevap ver.`
             };
             finalMessages = [contextMessage, ...messages];
         }
 
-        // Mevcut API'ye istek yap (DOĞRU ENDPOINT!)
         const response = await axios.post(
-            `${NEMOTRON_API}/api/chat`,  // https://nemotron-ultra-api.onrender.com/api/chat
+            `${NEMOTRON_API}/api/chat`,
             {
                 messages: finalMessages,
-                web_search: false // API'ye tekrar arama yapma, zaten biz yaptık
+                web_search: false
             },
             {
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers: { 'Content-Type': 'application/json' }
             }
         );
 
@@ -105,21 +86,19 @@ app.post('/api/chat', async (req, res) => {
             response: response.data.response,
             model: response.data.model,
             ai_name: response.data.ai_name,
-            web_used: web_search
+            web_used: web_search,
+            sources: sources
         });
 
     } catch (error) {
-        console.error('API hatasi:', error.message);
+        console.error('API hatası:', error.message);
         res.status(500).json({
             success: false,
-            error: 'Nemotron Ultra cevap uretirken bir hata olustu.'
+            error: 'Nemotron Ultra cevap üretirken bir hata oluştu.'
         });
     }
 });
 
-// ----------------------
-// 3. Sağlık Kontrolü
-// ----------------------
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'online',
@@ -128,14 +107,11 @@ app.get('/api/health', (req, res) => {
     });
 });
 
-// ----------------------
-// 4. Ana Sayfa (Frontend)
-// ----------------------
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.listen(PORT, () => {
-    console.log(`🚀 Proxy sunucu calisiyor: http://localhost:${PORT}`);
+    console.log(`🚀 Proxy sunucu çalışıyor: http://localhost:${PORT}`);
     console.log(`📡 Mevcut API: ${NEMOTRON_API}/api/chat`);
 });
