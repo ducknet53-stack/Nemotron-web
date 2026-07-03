@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nemotron Ultra - Web'de Ara</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div class="brand">
+                <span class="icon">🧠</span>
+                <h1>Nemotron</h1>
+                <span class="badge">Ultra</span>
+            </div>
+            <div class="mode-toggle">
+                <button class="mode-btn active" data-mode="normal">💬 Sohbet</button>
+                <button class="mode-btn" data-mode="web">🌐 Web'de Ara</button>
+            </div>
+        </div>
+
+        <div class="search-status idle" id="searchStatus">
+            <div class="globe paused" id="globe">
+                <span class="globe-icon">🌐</span>
+            </div>
+            <div class="search-text" id="searchText">
+                <span>Hazir</span>
+            </div>
+        </div>
+
+        <div class="chat-box" id="chatBox">
+            <div class="message ai">
+                <span class="label">🧠 Nemotron</span>
+                <div class="bubble">Merhaba! Ben Nemotron Ultra. Sana nasil yardimci olabilirim?</div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <input type="text" id="userInput" placeholder="Mesajini yaz..." />
+            <div class="btn-group">
+                <button class="btn-send" id="sendBtn">Gönder</button>
+                <button class="btn-web" id="webBtn">🌐 Web'de Ara</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
