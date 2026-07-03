@@ -8,7 +8,6 @@ const searchText = document.getElementById('searchText');
 
 let currentMode = 'normal';
 let isProcessing = false;
-let thinkingSteps = [];
 
 // ----- MOD DEĞİŞTİRME -----
 document.querySelectorAll('.mode-btn').forEach(btn => {
@@ -20,7 +19,7 @@ document.querySelectorAll('.mode-btn').forEach(btn => {
         if (currentMode === 'web') {
             webBtn.classList.add('active');
             searchStatus.classList.remove('idle');
-            searchText.innerHTML = '<span>🔍 Web modu aktif</span>';
+            searchText.innerHTML = '<span>Web modu aktif</span>';
             globe.classList.remove('paused');
         } else {
             webBtn.classList.remove('active');
@@ -36,11 +35,11 @@ webBtn.addEventListener('click', function() {
     if (isProcessing) return;
     const msg = userInput.value.trim();
     if (!msg) {
-        userInput.placeholder = 'Önce bir mesaj yaz...';
+        userInput.placeholder = 'Once bir mesaj yaz...';
         userInput.style.borderColor = '#EA4335';
         setTimeout(() => {
             userInput.style.borderColor = '';
-            userInput.placeholder = 'Mesajını yaz...';
+            userInput.placeholder = 'Mesajini yaz...';
         }, 2000);
         return;
     }
@@ -52,11 +51,11 @@ sendBtn.addEventListener('click', function() {
     if (isProcessing) return;
     const msg = userInput.value.trim();
     if (!msg) {
-        userInput.placeholder = 'Bir şey yaz...';
+        userInput.placeholder = 'Bir sey yaz...';
         userInput.style.borderColor = '#EA4335';
         setTimeout(() => {
             userInput.style.borderColor = '';
-            userInput.placeholder = 'Mesajını yaz...';
+            userInput.placeholder = 'Mesajini yaz...';
         }, 2000);
         return;
     }
@@ -67,7 +66,7 @@ userInput.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') sendBtn.click();
 });
 
-// ----- MESAJ GÖNDERME -----
+// ----- MESAJ GONDERME -----
 async function sendMessage(msg, useWebSearch) {
     if (isProcessing) return;
     isProcessing = true;
@@ -77,13 +76,19 @@ async function sendMessage(msg, useWebSearch) {
 
     addMessage('user', msg);
     userInput.value = '';
-    thinkingSteps = [];
 
     if (useWebSearch || currentMode === 'web') {
         await startWebAnimation(msg);
     }
 
+    // "Nemotron Yazıyor..." göster
+    showTypingIndicator();
+
     const aiResponse = await getAIResponse(msg, useWebSearch || currentMode === 'web');
+    
+    // "Yazıyor..." u kaldır
+    removeTypingIndicator();
+    
     await typeMessage(aiResponse);
 
     isProcessing = false;
@@ -94,24 +99,42 @@ async function sendMessage(msg, useWebSearch) {
 
     if (currentMode !== 'web') {
         searchStatus.classList.add('idle');
-        searchText.innerHTML = '<span>Hazır</span>';
+        searchText.innerHTML = '<span>Hazir</span>';
         globe.classList.add('paused');
     }
 }
 
-// ----- WEB ANİMASYONU (Düşünme Adımları) -----
+// ----- YAZIYOR... GÖSTER -----
+function showTypingIndicator() {
+    const div = document.createElement('div');
+    div.id = 'typingIndicator';
+    div.className = 'typing-indicator';
+    div.innerHTML = `
+        <span class="typing-text">Nemotron yaziyor<span class="typing-dots"></span></span>
+    `;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+function removeTypingIndicator() {
+    const el = document.getElementById('typingIndicator');
+    if (el) el.remove();
+}
+
+// ----- WEB ANIMASYONU (Kaliteli Düşünme Adımları) -----
 async function startWebAnimation(query) {
     return new Promise((resolve) => {
         searchStatus.classList.remove('idle');
         globe.classList.remove('paused');
         globe.classList.add('searching');
 
+        // Kaliteli reasoning adımları
         const steps = [
-            { icon: '🤔', text: `Kullanıcı "${query}" hakkında bilgi istiyor.` },
-            { icon: '🔍', text: 'Web\'de araştırma yapıyorum...' },
-            { icon: '📄', text: 'Sayfalar taranıyor ve bilgiler toplanıyor...' },
-            { icon: '🧠', text: 'Toplanan bilgiler analiz ediliyor...' },
-            { icon: '✍️', text: 'Cevap hazırlanıyor...' }
+            { icon: '⚛', text: `Kullanici "${query}" hakkinda bilgi istiyor. Bu konuyu detayli arastirmam gerekiyor.` },
+            { icon: '⚛', text: `Once en guncel kaynaklari tarayayim. Hava durumu icin dogru ve guvenilir bilgi bulmaliyim.` },
+            { icon: '⚛', text: `Meteoroloji verilerini ve yerel kaynaklari karsilastiriyorum...` },
+            { icon: '⚛', text: `Bilgileri dogruluyorum ve anlamli bir butun haline getiriyorum.` },
+            { icon: '⚛', text: `Cevabi hazirliyorum, kullaniciya en net sekilde aktaracagim.` }
         ];
 
         let index = 0;
@@ -121,11 +144,10 @@ async function startWebAnimation(query) {
                 addThinkingStep(steps[index].icon, steps[index].text);
                 searchText.innerHTML = `<span>${steps[index].icon} ${steps[index].text}</span>`;
                 index++;
-                setTimeout(showStep, 1200);
+                setTimeout(showStep, 1400);
             } else {
-                searchText.innerHTML = '<span>✅ Bilgiler toplandı! Cevap oluşturuluyor...</span>';
-                globe.classList.remove('searching');
-                setTimeout(() => resolve(), 600);
+                searchText.innerHTML = '<span>Bilgiler toplandi. Cevap olusturuluyor...</span>';
+                setTimeout(() => resolve(), 500);
             }
         }
         showStep();
@@ -150,11 +172,11 @@ function addMessage(role, content) {
     div.className = `message ${role}`;
     const label = document.createElement('span');
     label.className = 'label';
-    label.textContent = role === 'user' ? '👤 Sen' : '🧠 Nemotron';
+    label.textContent = role === 'user' ? 'Sen' : 'Nemotron';
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
     
-    // Bold işleme
+    // Bold işleme ( **metin** -> <b>metin</b> )
     if (content.includes('**')) {
         const parts = content.split(/\*\*(.*?)\*\*/g);
         let html = '';
@@ -186,9 +208,10 @@ function addSources(sources) {
         a.className = 'source-item';
         a.href = src.url;
         a.target = '_blank';
+        const hostname = new URL(src.url).hostname;
         a.innerHTML = `
-            <img class="favicon" src="https://www.google.com/s2/favicons?domain=${new URL(src.url).hostname}" />
-            ${src.title || src.url.replace(/^https?:\/\//, '').slice(0, 30)}
+            <img class="favicon" src="https://www.google.com/s2/favicons?domain=${hostname}" />
+            ${src.title || hostname}
         `;
         div.appendChild(a);
     });
@@ -203,7 +226,7 @@ function typeMessage(text) {
         div.className = 'message ai';
         const label = document.createElement('span');
         label.className = 'label';
-        label.textContent = '🧠 Nemotron';
+        label.textContent = 'Nemotron';
         const bubble = document.createElement('div');
         bubble.className = 'bubble';
         div.appendChild(label);
@@ -241,16 +264,15 @@ async function getAIResponse(msg, useWeb) {
 
         const data = await response.json();
         if (data.success) {
-            // Kaynakları göster
             if (data.sources) {
                 addSources(data.sources);
             }
             return data.response;
         } else {
-            return 'Üzgünüm, bir hata oluştu. Lütfen tekrar dener misin?';
+            return 'Uzgunum, bir hata olustu. Lutfen tekrar dener misin?';
         }
     } catch (error) {
-        console.error('API hatası:', error);
-        return 'Bağlantı hatası. Lütfen daha sonra tekrar dene.';
+        console.error('API hatasi:', error);
+        return 'Baglanti hatasi. Lutfen daha sonra tekrar dene.';
     }
 }
