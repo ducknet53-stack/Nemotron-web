@@ -1,84 +1,278 @@
-/* ----- DÜŞÜNÜYOR... INDICATOR ----- */
-.thinking-indicator {
+/* ----- RESET ----- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0b0f1f;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 16px;
+}
+
+/* ----- ANA KONTEYNER ----- */
+.container {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 32px;
+    padding: 28px 24px 24px;
+    max-width: 760px;
+    width: 100%;
+    box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    transition: all 0.3s ease;
+}
+
+/* ----- HEADER ----- */
+.header {
     display: flex;
     align-items: center;
-    padding: 8px 16px;
-    margin: 4px 0;
-    background: rgba(79, 172, 254, 0.05);
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.brand .icon {
+    font-size: 32px;
+    line-height: 1;
+    background: linear-gradient(145deg, #4facfe, #00c6fb);
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 24px;
+    box-shadow: 0 4px 20px rgba(79, 172, 254, 0.2);
+}
+
+.brand h1 {
+    color: #fff;
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    background: linear-gradient(to right, #fff, rgba(255, 255, 255, 0.6));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.brand .badge {
+    color: rgba(255, 255, 255, 0.25);
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 2px 10px;
     border-radius: 20px;
-    border: 1px solid rgba(79, 172, 254, 0.08);
-    animation: fadeIn 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-.thinking-content {
+/* ----- MOD BUTONLARI ----- */
+.mode-toggle {
+    display: flex;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 4px;
+    border-radius: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.mode-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.3);
+    position: relative;
+}
+
+.mode-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 30px;
+    padding: 2px;
+    background: linear-gradient(145deg, #4facfe, #00c6fb);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+}
+
+.mode-btn.active {
+    color: #fff;
+    background: linear-gradient(145deg, rgba(79, 172, 254, 0.15), rgba(0, 198, 251, 0.05));
+    box-shadow: 0 0 30px rgba(79, 172, 254, 0.05);
+}
+
+.mode-btn.active::after {
+    opacity: 1;
+}
+
+.mode-btn:hover:not(.active) {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* ----- DURUM ÇUBUĞU ----- */
+.search-status {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    gap: 16px;
+    min-height: 64px;
+    margin: 8px 0 18px 0;
+    padding: 10px 20px;
+    border-radius: 40px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+    transition: all 0.5s ease;
 }
 
-.thinking-icon {
-    font-size: 18px;
+.search-status.idle {
+    opacity: 0.2;
+}
+
+.search-status.active {
+    opacity: 1;
+    border-color: rgba(79, 172, 254, 0.1);
+    box-shadow: 0 0 60px rgba(79, 172, 254, 0.02);
+}
+
+/* ----- ATOM SİMGESİ (Animasyonlu) ----- */
+.globe {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #4facfe, #0072ff);
+    box-shadow: 0 0 40px rgba(79, 172, 254, 0.1), inset 0 -4px 16px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.4s ease;
+}
+
+.globe.paused {
+    opacity: 0.3;
+}
+
+.globe .globe-icon {
+    font-size: 24px;
+    color: #fff;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    line-height: 1;
+}
+
+.globe.searching .globe-icon {
     animation: atomPulse 1.2s ease-in-out infinite;
 }
 
-.thinking-text {
-    font-size: 14px;
+@keyframes atomPulse {
+    0% {
+        transform: scale(0.85);
+        opacity: 0.6;
+        text-shadow: 0 0 10px rgba(79, 172, 254, 0.2);
+    }
+    50% {
+        transform: scale(1.15);
+        opacity: 1;
+        text-shadow: 0 0 30px rgba(79, 172, 254, 0.6), 0 0 60px rgba(79, 172, 254, 0.2);
+    }
+    100% {
+        transform: scale(0.85);
+        opacity: 0.6;
+        text-shadow: 0 0 10px rgba(79, 172, 254, 0.2);
+    }
+}
+
+.search-text {
     color: rgba(255, 255, 255, 0.5);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.2px;
 }
 
-.thinking-dots::after {
-    content: '';
-    animation: typingDot 1.5s steps(4) infinite;
+/* ----- SOHBET ALANI ----- */
+.chat-box {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 24px;
+    padding: 20px 18px;
+    max-height: 380px;
+    min-height: 200px;
+    overflow-y: auto;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.02);
+    scroll-behavior: smooth;
 }
 
-/* ----- REASONING KONTEYNERI ----- */
-.reasoning-container {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(79, 172, 254, 0.08);
-    border-radius: 16px;
-    padding: 12px 16px;
-    margin: 6px 0 12px 0;
-    animation: fadeIn 0.4s ease;
+.chat-box::-webkit-scrollbar {
+    width: 3px;
+}
+.chat-box::-webkit-scrollbar-track {
+    background: transparent;
+}
+.chat-box::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
 }
 
-.reasoning-header {
+/* ----- MESAJLAR ----- */
+.message {
+    margin-bottom: 16px;
     display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    flex-direction: column;
+    animation: fadeSlide 0.3s ease;
 }
 
-.reasoning-icon {
-    font-size: 16px;
-    color: rgba(79, 172, 254, 0.6);
+.message.user {
+    align-items: flex-end;
+}
+.message.ai {
+    align-items: flex-start;
 }
 
-.reasoning-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: rgba(255, 255, 255, 0.2);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.reasoning-content {
-    font-size: 13px;
+.bubble {
+    max-width: 85%;
+    padding: 12px 18px;
+    border-radius: 20px;
+    font-size: 15px;
     line-height: 1.6;
-    color: rgba(255, 255, 255, 0.4);
-    font-style: italic;
-    white-space: pre-wrap;
+    word-break: break-word;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
-.reasoning-content b,
-.reasoning-content strong {
-    color: rgba(79, 172, 254, 0.5);
-    font-weight: 600;
-    font-style: normal;
+.message.user .bubble {
+    background: linear-gradient(145deg, #4facfe, #00c6fb);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+    box-shadow: 0 4px 20px rgba(79, 172, 254, 0.15);
 }
 
-/* ----- BOLD YAZI (Sohbette) ----- */
+.message.ai .bubble {
+    background: rgba(255, 255, 255, 0.04);
+    color: #e8edf5;
+    border-bottom-left-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
 .bubble b,
 .bubble strong {
     color: #4facfe;
@@ -86,38 +280,348 @@
 }
 
 .bubble code {
-    background: rgba(255, 255, 255, 0.05);
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-family: monospace;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
     font-size: 0.9em;
-    color: #e8edf5;
+    color: #4facfe;
 }
 
-/* Animasyonlar */
-@keyframes atomPulse {
+.message .label {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.15);
+    margin: 0 12px 4px 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+@keyframes fadeSlide {
     0% {
-        transform: scale(0.8);
-        opacity: 0.6;
-    }
-    50% {
-        transform: scale(1.2);
-        opacity: 1;
+        opacity: 0;
+        transform: translateY(10px);
     }
     100% {
-        transform: scale(0.8);
-        opacity: 0.6;
+        opacity: 1;
+        transform: translateY(0);
     }
+}
+
+/* ----- DÜŞÜNÜYOR... ----- */
+.thinking-indicator {
+    display: flex;
+    align-items: center;
+    padding: 6px 14px;
+    margin: 4px 0;
+    background: rgba(79, 172, 254, 0.03);
+    border-radius: 30px;
+    border: 1px solid rgba(79, 172, 254, 0.03);
+    animation: fadeSlide 0.3s ease;
+    width: fit-content;
+}
+
+.thinking-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.thinking-icon {
+    font-size: 16px;
+    animation: atomPulse 1.2s ease-in-out infinite;
+}
+
+.thinking-text {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.3);
+    font-weight: 500;
+}
+
+.thinking-dots::after {
+    content: '';
+    animation: typingDot 1.5s steps(4) infinite;
 }
 
 @keyframes typingDot {
-    0% { content: ''; }
-    25% { content: '.'; }
-    50% { content: '..'; }
-    75% { content: '...'; }
+    0% {
+        content: '';
+    }
+    25% {
+        content: '.';
+    }
+    50% {
+        content: '..';
+    }
+    75% {
+        content: '...';
+    }
 }
 
-@keyframes fadeIn {
-    0% { opacity: 0; transform: translateY(8px); }
-    100% { opacity: 1; transform: translateY(0); }
+/* ----- REASONING KONTEYNERI ----- */
+.reasoning-container {
+    background: rgba(255, 255, 255, 0.01);
+    border: 1px solid rgba(79, 172, 254, 0.04);
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin: 6px 0 14px 0;
+    animation: fadeSlide 0.4s ease;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.reasoning-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.reasoning-icon {
+    font-size: 14px;
+    color: rgba(79, 172, 254, 0.3);
+}
+
+.reasoning-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.08);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.reasoning-content {
+    font-size: 13px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.2);
+    white-space: pre-wrap;
+    font-style: italic;
+}
+
+.reasoning-content b,
+.reasoning-content strong {
+    color: rgba(79, 172, 254, 0.2);
+    font-weight: 600;
+    font-style: normal;
+}
+
+/* ----- KAYNAK SİTELER ----- */
+.sources {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.source-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px 3px 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 30px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.2);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+.source-item:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.5);
+    border-color: rgba(255, 255, 255, 0.04);
+}
+
+.source-item .favicon {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    object-fit: cover;
+}
+
+/* ----- GİRİŞ ALANI ----- */
+.input-area {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 4px;
+    border-radius: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.input-area input {
+    flex: 1;
+    padding: 12px 18px;
+    border: none;
+    background: transparent;
+    color: #fff;
+    font-size: 15px;
+    outline: none;
+    min-width: 140px;
+}
+
+.input-area input::placeholder {
+    color: rgba(255, 255, 255, 0.15);
+    font-weight: 400;
+}
+
+.input-area .btn-group {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+}
+
+.input-area button {
+    padding: 10px 22px;
+    border: none;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-send {
+    background: linear-gradient(145deg, #4facfe, #00c6fb);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(79, 172, 254, 0.15);
+}
+
+.btn-send:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 30px rgba(79, 172, 254, 0.25);
+}
+
+.btn-send:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.btn-web {
+    background: rgba(255, 255, 255, 0.03);
+    color: rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.btn-web:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.btn-web.active {
+    background: rgba(79, 172, 254, 0.08);
+    border-color: rgba(79, 172, 254, 0.15);
+    color: #4facfe;
+}
+
+button:disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* ----- TYPING CURSOR ----- */
+.typing-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: #4facfe;
+    margin-left: 2px;
+    animation: blink 0.8s step-end infinite;
+    vertical-align: text-bottom;
+}
+
+@keyframes blink {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+}
+
+/* ----- RESPONSIVE ----- */
+@media (max-width: 600px) {
+    .container {
+        padding: 20px 14px;
+        border-radius: 24px;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .brand .icon {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+    }
+
+    .brand h1 {
+        font-size: 20px;
+    }
+
+    .mode-toggle {
+        align-self: flex-start;
+    }
+
+    .mode-btn {
+        padding: 6px 14px;
+        font-size: 12px;
+    }
+
+    .search-status {
+        flex-direction: column;
+        gap: 8px;
+        padding: 14px;
+        min-height: 56px;
+        border-radius: 28px;
+    }
+
+    .globe {
+        width: 40px;
+        height: 40px;
+    }
+
+    .globe .globe-icon {
+        font-size: 20px;
+    }
+
+    .input-area {
+        flex-direction: column;
+        background: transparent;
+        border: none;
+        padding: 0;
+    }
+
+    .input-area input {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 40px;
+        padding: 14px 18px;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .input-area .btn-group {
+        width: 100%;
+    }
+
+    .input-area button {
+        flex: 1;
+        justify-content: center;
+        padding: 12px 16px;
+        font-size: 12px;
+    }
 }
