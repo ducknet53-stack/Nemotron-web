@@ -8,7 +8,6 @@ const searchText = document.getElementById('searchText');
 
 let currentMode = 'normal';
 let isProcessing = false;
-let reasoningSteps = [];
 
 // ----- MOD DEĞİŞTİRME -----
 document.querySelectorAll('.mode-btn').forEach(btn => {
@@ -77,39 +76,30 @@ async function sendMessage(msg, useWebSearch) {
 
     addMessage('user', msg);
     userInput.value = '';
-    reasoningSteps = [];
 
     if (useWebSearch || currentMode === 'web') {
-        await startWebAnimation(msg);
+        await startWebAnimation();
     }
-
-    // Reasoning kutusunu oluştur (önce boş, sonra doldurulacak)
-    const reasoningContainer = createReasoningBox();
 
     // AI cevabını al (reasoning ile birlikte)
     const data = await getAIResponse(msg, useWebSearch || currentMode === 'web');
 
-    // Reasoning varsa doldur
+    // --- GERÇEK REASONING GÖSTER (SADECE API'DEN GELEN) ---
+    let reasoningContainer = null;
     if (data.reasoning && data.reasoning.trim().length > 0) {
+        reasoningContainer = createReasoningBox();
         const steps = data.reasoning.split('\n').filter(s => s.trim().length > 0);
         steps.forEach((step, index) => {
-            setTimeout(() => {
-                addReasoningStep(reasoningContainer, step, index + 1);
-                // Otomatik açık tut
-                const body = reasoningContainer.querySelector('.reasoning-body');
-                const toggle = reasoningContainer.querySelector('.reasoning-toggle');
-                if (body) body.classList.add('open');
-                if (toggle) toggle.classList.add('open');
-            }, index * 300);
+            addReasoningStep(reasoningContainer, step, index + 1);
         });
-    } else {
-        // Reasoning yoksa kutuyu gizle veya kaldır
-        if (reasoningContainer) {
-            reasoningContainer.style.display = 'none';
-        }
+        // Otomatik açık tut
+        const body = reasoningContainer.querySelector('.reasoning-body');
+        const toggle = reasoningContainer.querySelector('.reasoning-toggle');
+        if (body) body.classList.add('open');
+        if (toggle) toggle.classList.add('open');
     }
 
-    // Final cevabı yaz (reasoning kutusunun altına)
+    // --- FİNAL CEVABI GÖSTER ---
     await typeMessage(data.response);
 
     // Kaynakları göster
@@ -131,7 +121,7 @@ async function sendMessage(msg, useWebSearch) {
 }
 
 // ============================================================
-// 🧠 REASONING KUTUSU OLUŞTUR
+// 🧠 REASONING KUTUSU (SADECE GERÇEK REASONING İÇİN)
 // ============================================================
 function createReasoningBox() {
     const container = document.createElement('div');
@@ -158,7 +148,6 @@ function createReasoningBox() {
         this.textContent = body.classList.contains('open') ? '▼' : '▶';
     });
 
-    // Header'a tıklayınca da aç/kapa
     const header = container.querySelector('.reasoning-header');
     header.addEventListener('click', function(e) {
         if (e.target === toggle) return;
@@ -174,7 +163,7 @@ function createReasoningBox() {
 }
 
 // ============================================================
-// REASONING ADIMI EKLE (sırayla)
+// REASONING ADIMI EKLE
 // ============================================================
 function addReasoningStep(container, text, num) {
     const body = container.querySelector('.reasoning-body');
@@ -190,36 +179,17 @@ function addReasoningStep(container, text, num) {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// ----- WEB ANİMASYONU -----
-async function startWebAnimation(query) {
+// ----- WEB ANİMASYONU (SADECE DURUM GÖSTERİMİ, SAHTE REASONING YOK) -----
+async function startWebAnimation() {
     return new Promise((resolve) => {
         searchStatus.classList.remove('idle');
         globe.classList.remove('paused');
         globe.classList.add('searching');
-
-        const steps = [
-            `Kullanıcı "${query}" hakkında bilgi istiyor.`,
-            'En güncel kaynaklar taranıyor...',
-            'Veriler doğrulanıyor ve analiz ediliyor...',
-            'Cevap hazırlanıyor...'
-        ];
-
-        let index = 0;
-        // Önce reasoning kutusunu oluştur
-        const container = createReasoningBox();
-
-        function showStep() {
-            if (index < steps.length) {
-                searchText.innerHTML = `<span>⚛ ${steps[index]}</span>`;
-                addReasoningStep(container, steps[index], index + 1);
-                index++;
-                setTimeout(showStep, 1200);
-            } else {
-                searchText.innerHTML = '<span>✅ Bilgiler toplandı. Cevap oluşturuluyor...</span>';
-                setTimeout(() => resolve(), 500);
-            }
-        }
-        showStep();
+        searchText.innerHTML = '<span>⚛ Web\'de araştırılıyor...</span>';
+        setTimeout(() => {
+            searchText.innerHTML = '<span>✅ Web\'den bilgiler alındı. Cevap hazırlanıyor...</span>';
+            setTimeout(() => resolve(), 500);
+        }, 2000);
     });
 }
 
@@ -290,13 +260,10 @@ function typeMessage(text) {
         chatBox.appendChild(div);
 
         const html = renderMarkdown(text);
-        const plainText = text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').replace(/`(.*?)`/g, '$1');
-        
         let index = 0;
 
         function typeChar() {
             if (index < html.length) {
-                // HTML etiketlerini kontrol et
                 if (html[index] === '<') {
                     let tag = '';
                     while (index < html.length && html[index] !== '>') {
@@ -308,7 +275,6 @@ function typeMessage(text) {
                     bubble.innerHTML += tag;
                     setTimeout(typeChar, 0);
                 } else {
-                    // Normal karakter
                     let display = html.substring(0, index + 1);
                     bubble.innerHTML = display + '<span class="typing-cursor"></span>';
                     index++;
