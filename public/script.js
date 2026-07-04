@@ -8,6 +8,7 @@ const searchText = document.getElementById('searchText');
 
 let currentMode = 'normal';
 let isProcessing = false;
+let reasoningSteps = [];
 
 // ----- MOD DEĞİŞTİRME -----
 document.querySelectorAll('.mode-btn').forEach(btn => {
@@ -19,7 +20,7 @@ document.querySelectorAll('.mode-btn').forEach(btn => {
         if (currentMode === 'web') {
             webBtn.classList.add('active');
             searchStatus.classList.remove('idle');
-            searchText.innerHTML = '<span>Web modu aktif</span>';
+            searchText.innerHTML = '<span>⚛ Web modu aktif</span>';
             globe.classList.remove('paused');
         } else {
             webBtn.classList.remove('active');
@@ -35,11 +36,11 @@ webBtn.addEventListener('click', function() {
     if (isProcessing) return;
     const msg = userInput.value.trim();
     if (!msg) {
-        userInput.placeholder = 'Once bir mesaj yaz...';
+        userInput.placeholder = 'Önce bir mesaj yaz...';
         userInput.style.borderColor = '#EA4335';
         setTimeout(() => {
             userInput.style.borderColor = '';
-            userInput.placeholder = 'Mesajini yaz...';
+            userInput.placeholder = 'Mesajını yaz...';
         }, 2000);
         return;
     }
@@ -51,11 +52,11 @@ sendBtn.addEventListener('click', function() {
     if (isProcessing) return;
     const msg = userInput.value.trim();
     if (!msg) {
-        userInput.placeholder = 'Bir sey yaz...';
+        userInput.placeholder = 'Bir şey yaz...';
         userInput.style.borderColor = '#EA4335';
         setTimeout(() => {
             userInput.style.borderColor = '';
-            userInput.placeholder = 'Mesajini yaz...';
+            userInput.placeholder = 'Mesajını yaz...';
         }, 2000);
         return;
     }
@@ -76,25 +77,39 @@ async function sendMessage(msg, useWebSearch) {
 
     addMessage('user', msg);
     userInput.value = '';
+    reasoningSteps = [];
 
     if (useWebSearch || currentMode === 'web') {
         await startWebAnimation(msg);
     }
 
-    // "Nemotron düşünüyor..." göster
-    showThinkingIndicator();
+    // Reasoning kutusunu oluştur (önce boş, sonra doldurulacak)
+    const reasoningContainer = createReasoningBox();
 
+    // AI cevabını al (reasoning ile birlikte)
     const data = await getAIResponse(msg, useWebSearch || currentMode === 'web');
-    
-    // Düşünme indicator'unu kaldır
-    removeThinkingIndicator();
 
-    // Reasoning'i göster (eğer varsa)
-    if (data.reasoning) {
-        addReasoning(data.reasoning);
+    // Reasoning varsa doldur
+    if (data.reasoning && data.reasoning.trim().length > 0) {
+        const steps = data.reasoning.split('\n').filter(s => s.trim().length > 0);
+        steps.forEach((step, index) => {
+            setTimeout(() => {
+                addReasoningStep(reasoningContainer, step, index + 1);
+                // Otomatik açık tut
+                const body = reasoningContainer.querySelector('.reasoning-body');
+                const toggle = reasoningContainer.querySelector('.reasoning-toggle');
+                if (body) body.classList.add('open');
+                if (toggle) toggle.classList.add('open');
+            }, index * 300);
+        });
+    } else {
+        // Reasoning yoksa kutuyu gizle veya kaldır
+        if (reasoningContainer) {
+            reasoningContainer.style.display = 'none';
+        }
     }
 
-    // Final cevabı yaz
+    // Final cevabı yaz (reasoning kutusunun altına)
     await typeMessage(data.response);
 
     // Kaynakları göster
@@ -110,43 +125,68 @@ async function sendMessage(msg, useWebSearch) {
 
     if (currentMode !== 'web') {
         searchStatus.classList.add('idle');
-        searchText.innerHTML = '<span>Hazir</span>';
+        searchText.innerHTML = '<span>Hazır</span>';
         globe.classList.add('paused');
     }
 }
 
-// ----- DÜŞÜNÜYOR... GÖSTER -----
-function showThinkingIndicator() {
-    const div = document.createElement('div');
-    div.id = 'thinkingIndicator';
-    div.className = 'thinking-indicator';
-    div.innerHTML = `
-        <div class="thinking-content">
-            <span class="thinking-icon">⚛</span>
-            <span class="thinking-text">Nemotron düşünüyor<span class="thinking-dots"></span></span>
-        </div>
-    `;
-    chatBox.appendChild(div);
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
+// ============================================================
+// 🧠 REASONING KUTUSU OLUŞTUR
+// ============================================================
+function createReasoningBox() {
+    const container = document.createElement('div');
+    container.className = 'reasoning-box';
 
-function removeThinkingIndicator() {
-    const el = document.getElementById('thinkingIndicator');
-    if (el) el.remove();
-}
-
-// ----- REASONING GÖSTER -----
-function addReasoning(reasoningText) {
-    const div = document.createElement('div');
-    div.className = 'reasoning-container';
-    div.innerHTML = `
+    container.innerHTML = `
         <div class="reasoning-header">
-            <span class="reasoning-icon">⚛</span>
-            <span class="reasoning-title">Nemotron düşünüyordu...</span>
+            <div class="reasoning-header-left">
+                <span class="reasoning-icon">🧠</span>
+                <span class="reasoning-title">Düşünüyor...</span>
+            </div>
+            <button class="reasoning-toggle open">▼</button>
         </div>
-        <div class="reasoning-content">${reasoningText}</div>
+        <div class="reasoning-body open"></div>
     `;
-    chatBox.appendChild(div);
+
+    // Toggle işlevi
+    const toggle = container.querySelector('.reasoning-toggle');
+    const body = container.querySelector('.reasoning-body');
+    toggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        body.classList.toggle('open');
+        this.classList.toggle('open');
+        this.textContent = body.classList.contains('open') ? '▼' : '▶';
+    });
+
+    // Header'a tıklayınca da aç/kapa
+    const header = container.querySelector('.reasoning-header');
+    header.addEventListener('click', function(e) {
+        if (e.target === toggle) return;
+        body.classList.toggle('open');
+        toggle.classList.toggle('open');
+        toggle.textContent = body.classList.contains('open') ? '▼' : '▶';
+    });
+
+    chatBox.appendChild(container);
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    return container;
+}
+
+// ============================================================
+// REASONING ADIMI EKLE (sırayla)
+// ============================================================
+function addReasoningStep(container, text, num) {
+    const body = container.querySelector('.reasoning-body');
+    if (!body) return;
+
+    const step = document.createElement('div');
+    step.className = 'reasoning-step';
+    step.innerHTML = `
+        <span class="step-num">${num}.</span>
+        <span class="step-text">${renderMarkdown(text)}</span>
+    `;
+    body.appendChild(step);
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
@@ -158,26 +198,40 @@ async function startWebAnimation(query) {
         globe.classList.add('searching');
 
         const steps = [
-            { icon: '⚛', text: `Kullanici "${query}" hakkinda bilgi istiyor.` },
-            { icon: '⚛', text: 'En guncel kaynaklari taranıyor...' },
-            { icon: '⚛', text: 'Veriler dogrulanıyor ve analiz ediliyor...' },
-            { icon: '⚛', text: 'Cevap hazirlaniyor...' }
+            `Kullanıcı "${query}" hakkında bilgi istiyor.`,
+            'En güncel kaynaklar taranıyor...',
+            'Veriler doğrulanıyor ve analiz ediliyor...',
+            'Cevap hazırlanıyor...'
         ];
 
         let index = 0;
+        // Önce reasoning kutusunu oluştur
+        const container = createReasoningBox();
 
         function showStep() {
             if (index < steps.length) {
-                searchText.innerHTML = `<span>${steps[index].icon} ${steps[index].text}</span>`;
+                searchText.innerHTML = `<span>⚛ ${steps[index]}</span>`;
+                addReasoningStep(container, steps[index], index + 1);
                 index++;
                 setTimeout(showStep, 1200);
             } else {
-                searchText.innerHTML = '<span>Bilgiler toplandi. Cevap olusturuluyor...</span>';
+                searchText.innerHTML = '<span>✅ Bilgiler toplandı. Cevap oluşturuluyor...</span>';
                 setTimeout(() => resolve(), 500);
             }
         }
         showStep();
     });
+}
+
+// ----- MARKDOWN RENDER -----
+function renderMarkdown(text) {
+    if (!text) return '';
+    let html = text;
+    html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+    html = html.replace(/\*(.*?)\*/g, '<i>$1</i>');
+    html = html.replace(/`(.*?)`/g, '<code>$1</code>');
+    html = html.replace(/\n/g, '<br>');
+    return html;
 }
 
 // ----- MESAJ EKLE -----
@@ -189,32 +243,11 @@ function addMessage(role, content) {
     label.textContent = role === 'user' ? 'Sen' : 'Nemotron';
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
-    
-    // Markdown işleme
-    if (content.includes('**') || content.includes('*') || content.includes('`')) {
-        bubble.innerHTML = renderMarkdown(content);
-    } else {
-        bubble.textContent = content;
-    }
-    
+    bubble.innerHTML = renderMarkdown(content);
     div.appendChild(label);
     div.appendChild(bubble);
     chatBox.appendChild(div);
     chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// ----- MARKDOWN RENDER -----
-function renderMarkdown(text) {
-    let html = text;
-    // Bold
-    html = html.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-    // Italic
-    html = html.replace(/\*(.*?)\*/g, '<i>$1</i>');
-    // Code
-    html = html.replace(/`(.*?)`/g, '<code>$1</code>');
-    // Newline to br
-    html = html.replace(/\n/g, '<br>');
-    return html;
 }
 
 // ----- KAYNAK EKLE -----
@@ -227,11 +260,15 @@ function addSources(sources) {
         a.className = 'source-item';
         a.href = src.url;
         a.target = '_blank';
-        const hostname = new URL(src.url).hostname;
-        a.innerHTML = `
-            <img class="favicon" src="https://www.google.com/s2/favicons?domain=${hostname}" />
-            ${src.title || hostname}
-        `;
+        try {
+            const hostname = new URL(src.url).hostname;
+            a.innerHTML = `
+                <img class="favicon" src="https://www.google.com/s2/favicons?domain=${hostname}" />
+                ${src.title || hostname}
+            `;
+        } catch {
+            a.textContent = src.title || src.url;
+        }
         div.appendChild(a);
     });
     chatBox.appendChild(div);
@@ -252,46 +289,34 @@ function typeMessage(text) {
         div.appendChild(bubble);
         chatBox.appendChild(div);
 
-        // Markdown işleme
         const html = renderMarkdown(text);
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
-        const textNodes = [];
+        const plainText = text.replace(/\*\*(.*?)\*\*/g, '$1').replace(/\*(.*?)\*/g, '$1').replace(/`(.*?)`/g, '$1');
         
-        // HTML'yi parçalara ayır
-        const walker = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT, null, false);
-        let node;
-        while (node = walker.nextNode()) {
-            textNodes.push(node);
-        }
-
-        let currentIndex = 0;
-        let currentText = '';
-        let isTagOpen = false;
-        let tagStack = [];
+        let index = 0;
 
         function typeChar() {
-            if (currentIndex < html.length) {
+            if (index < html.length) {
                 // HTML etiketlerini kontrol et
-                if (html[currentIndex] === '<') {
-                    // Etiket başlangıcı
+                if (html[index] === '<') {
                     let tag = '';
-                    while (currentIndex < html.length && html[currentIndex] !== '>') {
-                        tag += html[currentIndex];
-                        currentIndex++;
+                    while (index < html.length && html[index] !== '>') {
+                        tag += html[index];
+                        index++;
                     }
                     tag += '>';
-                    currentIndex++;
+                    index++;
                     bubble.innerHTML += tag;
                     setTimeout(typeChar, 0);
                 } else {
                     // Normal karakter
-                    bubble.textContent += html[currentIndex];
-                    currentIndex++;
+                    let display = html.substring(0, index + 1);
+                    bubble.innerHTML = display + '<span class="typing-cursor"></span>';
+                    index++;
                     chatBox.scrollTop = chatBox.scrollHeight;
                     setTimeout(typeChar, 15);
                 }
             } else {
+                bubble.innerHTML = html;
                 resolve();
             }
         }
@@ -315,10 +340,10 @@ async function getAIResponse(msg, useWeb) {
         if (data.success) {
             return data;
         } else {
-            return { response: 'Uzgunum, bir hata olustu. Lutfen tekrar dener misin?' };
+            return { response: 'Üzgünüm, bir hata oluştu. Lütfen tekrar dener misin?', reasoning: '' };
         }
     } catch (error) {
-        console.error('API hatasi:', error);
-        return { response: 'Baglanti hatasi. Lutfen daha sonra tekrar dene.' };
+        console.error('API hatası:', error);
+        return { response: 'Bağlantı hatası. Lütfen daha sonra tekrar dene.', reasoning: '' };
     }
 }
